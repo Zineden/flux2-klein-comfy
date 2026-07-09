@@ -31,7 +31,8 @@
     "inputs": {
       "image": ["20", 0],
       "upscale_method": "nearest-exact",
-      "megapixels": 1.0
+      "megapixels": 1.0,
+      "resolution_steps": 64
     }
   },
   "22": {
