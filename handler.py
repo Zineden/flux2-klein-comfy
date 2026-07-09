@@ -25,6 +25,7 @@ import logging
 import threading
 import urllib.parse
 import urllib.request
+import urllib.error
 
 import runpod
 
@@ -85,7 +86,7 @@ def fetch_bytes(url):
                 return r.read()
         except Exception as e:
             last = e; time.sleep(0.4 * (attempt + 1))
-    raise last
+    raise RuntimeError(f"image download failed ({url[:120]}): {last}")
 
 
 def resolve_input_image(job_input):
@@ -119,7 +120,12 @@ def resolve_input_image(job_input):
 def queue_prompt(prompt):
     p = {"prompt": prompt, "client_id": client_id}
     req = urllib.request.Request(f"http://{server_address}:8188/prompt", data=json.dumps(p).encode("utf-8"))
-    return json.loads(urllib.request.urlopen(req).read())
+    try:
+        return json.loads(urllib.request.urlopen(req).read())
+    except urllib.error.HTTPError as e:
+        # ComfyUI는 워크플로 검증 실패 시 400 + 상세 JSON(어느 노드/입력이 문제인지)을 준다 → 그대로 노출.
+        body = e.read().decode("utf-8", "ignore")
+        raise RuntimeError(f"ComfyUI /prompt {e.code}: {body[:1200]}")
 
 
 def get_image(filename, subfolder, folder_type):
