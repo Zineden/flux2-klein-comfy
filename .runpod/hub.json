@@ -1,0 +1,13 @@
+{
+  "title": "FLUX.2-klein-4B Image Edit (GGUF)",
+  "description": "FLUX.2-klein-4B (Apache-2.0) image editing via ComfyUI + GGUF — input image + prompt, e.g. remove all texts. Distilled 4-step; small quantized weights for fast cold start.",
+  "type": "serverless",
+  "category": "image",
+  "config": {
+    "runsOn": "GPU",
+    "containerDiskInGb": 50,
+    "gpuCount": 1,
+    "gpuIds": "ADA_24,ADA_32_PRO,AMPERE_24",
+    "allowedCudaVersions": ["12.8"]
+  }
+}

@@ -1,0 +1,139 @@
+{
+  "10": {
+    "class_type": "UnetLoaderGGUF",
+    "inputs": {
+      "unet_name": "flux-2-klein-4b-Q8_0.gguf"
+    }
+  },
+  "11": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "qwen_3_4b_fp4_flux2.safetensors",
+      "type": "flux2",
+      "device": "default"
+    }
+  },
+  "12": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "flux2-vae.safetensors"
+    }
+  },
+  "20": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "input_edit.png",
+      "upload": "image"
+    }
+  },
+  "21": {
+    "class_type": "ImageScaleToTotalPixels",
+    "inputs": {
+      "image": ["20", 0],
+      "upscale_method": "nearest-exact",
+      "megapixels": 1.0
+    }
+  },
+  "22": {
+    "class_type": "GetImageSize",
+    "inputs": {
+      "image": ["21", 0]
+    }
+  },
+  "23": {
+    "class_type": "VAEEncode",
+    "inputs": {
+      "pixels": ["21", 0],
+      "vae": ["12", 0]
+    }
+  },
+  "30": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "Change the background to a sunny beach at golden hour. Keep the person in the exact same position, scale and pose. Maintain identical camera angle, framing and perspective.",
+      "clip": ["11", 0]
+    }
+  },
+  "31": {
+    "class_type": "ConditioningZeroOut",
+    "inputs": {
+      "conditioning": ["30", 0]
+    }
+  },
+  "32": {
+    "class_type": "ReferenceLatent",
+    "inputs": {
+      "conditioning": ["30", 0],
+      "latent": ["23", 0]
+    }
+  },
+  "33": {
+    "class_type": "ReferenceLatent",
+    "inputs": {
+      "conditioning": ["31", 0],
+      "latent": ["23", 0]
+    }
+  },
+  "40": {
+    "class_type": "EmptyFlux2LatentImage",
+    "inputs": {
+      "width": ["22", 0],
+      "height": ["22", 1],
+      "batch_size": 1
+    }
+  },
+  "41": {
+    "class_type": "Flux2Scheduler",
+    "inputs": {
+      "steps": 4,
+      "width": ["22", 0],
+      "height": ["22", 1]
+    }
+  },
+  "42": {
+    "class_type": "KSamplerSelect",
+    "inputs": {
+      "sampler_name": "euler"
+    }
+  },
+  "43": {
+    "class_type": "RandomNoise",
+    "inputs": {
+      "noise_seed": 12345,
+      "control_after_generate": "randomize"
+    }
+  },
+  "44": {
+    "class_type": "CFGGuider",
+    "inputs": {
+      "model": ["10", 0],
+      "positive": ["32", 0],
+      "negative": ["33", 0],
+      "cfg": 1.0
+    }
+  },
+  "45": {
+    "class_type": "SamplerCustomAdvanced",
+    "inputs": {
+      "noise": ["43", 0],
+      "guider": ["44", 0],
+      "sampler": ["42", 0],
+      "sigmas": ["41", 0],
+      "latent_image": ["40", 0]
+    }
+  },
+  "50": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": ["45", 0],
+      "vae": ["12", 0]
+    }
+  },
+  "51": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": ["50", 0],
+      "filename_prefix": "Flux2_klein_edit"
+    }
+  }
+}
